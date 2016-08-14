@@ -20,29 +20,56 @@ namespace ChanFix
         public string Host { get; set; }
     }
 
+    public class Config
+    {
+        public string Server { get; set; }
+        public int Port { get; set; } = 6667;
+
+        public string Nick { get; set; } = "ChanFix";
+
+        public string OperName { get; set; }
+        public string OperPass { get; set; }
+    }
+
     class Program
     {
         public static string configDir = Path.Combine(Environment.GetFolderPath
             (Environment.SpecialFolder.ApplicationData), "ChanFix");
         public static string mapFile = Path.Combine(configDir, "OperatorMapping.json");
+        public static string configFile = Path.Combine(configDir, "Config.json");
 
         public static IrcClient irc = new IrcClient();
+        public static Config config = new Config();
+
         // Key: Channel, Values: List of channel ops
         public static OperMap operMap = new OperMap();
         // Key: Channel, Value: User trying to enroll
         public static Dictionary<string, string> tryToEnroll =
                   new Dictionary<string, string>();
 
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             // init app
             if (!Directory.Exists(configDir))
                 Directory.CreateDirectory(configDir);
 
+            if (File.Exists(configFile))
+                config = JsonConvert.DeserializeObject<Config>
+                    (File.ReadAllText(configFile));
+            else
+            {
+                Console.WriteLine("The config file didn't exist, created a template.");
+                Console.WriteLine("Configure this file and restart the server.");
+                File.WriteAllText(configFile, JsonConvert.SerializeObject(new Config()));
+                return 1;
+            }
+
             if (File.Exists(mapFile))
                 operMap = JsonConvert.DeserializeObject<OperMap>
                     (File.ReadAllText(mapFile));
 
+            // TODO: This won't intercept signals, and signal interception is
+            // NOT cross platform. Handle this better.
             AppDomain.CurrentDomain.ProcessExit += ProcessExit;
 
             // init irc
@@ -52,11 +79,13 @@ namespace ChanFix
 
             irc.ActiveChannelSyncing = true;
             irc.SupportNonRfc = true;
-            irc.Connect("bretagne.imaginarycode.com", 6667);
-            irc.Login("ChanFix", "Channel op repair services");
-            irc.RfcOper("calvin", "hacktheplanet");
+            irc.Connect(config.Server, 6667);
+            irc.Login(config.Nick, "Channel op repair services");
+            irc.RfcOper(config.OperName, config.OperPass);
 
             irc.Listen();
+
+            return 0;
         }
 
         public static void SerializeMap()
