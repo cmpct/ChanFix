@@ -86,8 +86,9 @@ namespace ChanFix
             irc.ActiveChannelSyncing = true;
             irc.SupportNonRfc = true;
             irc.Connect(config.Server, 6667);
-            irc.Login(config.Nick, "Channel op repair services");
+            irc.Login(config.Nick, "Channel op repair services", 4, config.Nick);
             irc.RfcOper(config.OperName, config.OperPass);
+            irc.RfcMode(irc.Nickname, "+B");
 
             irc.Listen();
 
