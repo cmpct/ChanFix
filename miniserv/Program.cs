@@ -121,7 +121,7 @@ namespace ChanFix
             var cmds = e.Data.Message.Split(' ');
 
             var cmd = cmds[0];
-            var param = cmds[1];
+            var param = cmds.Count() > 1 ? cmds[1] : null;
 
             switch (cmd?.ToLower())
             {
@@ -185,7 +185,9 @@ namespace ChanFix
             string enroller = tryToEnroll[e.Data.Channel];
             ChannelUser enrollerAsUser = ((ChannelUser)c.Users[enroller]);
 
-            if (enrollerAsUser.IsOp || enrollerAsUser.IsIrcOp)
+            // if the user isn't even in the channel
+            if (enrollerAsUser == null) return;
+            else if (enrollerAsUser.IsOp || enrollerAsUser.IsIrcOp)
             {
                 // wipe/init the channel enrollment
                 operMap[e.Data.Channel] = new List<User>();
