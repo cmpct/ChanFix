@@ -186,7 +186,11 @@ namespace ChanFix
             ChannelUser enrollerAsUser = ((ChannelUser)c.Users[enroller]);
 
             // if the user isn't even in the channel
-            if (enrollerAsUser == null) return;
+            if (enrollerAsUser == null)
+            {
+                Notice(enroller, string.Format("You aren't in {0}.", e.Data.Channel));
+                return;
+            }
             else if (enrollerAsUser.IsOp || enrollerAsUser.IsIrcOp)
             {
                 // wipe/init the channel enrollment
@@ -205,13 +209,19 @@ namespace ChanFix
                     });
                 }
 
-                irc.RfcPart(e.Data.Channel, "Channel enrolled into ChanFix.");
-                Debug.WriteLine(string.Format("Enrolled {0}", e.Data.Channel), "Action");
+                string msg = string.Format("{0} was enrolled.", e.Data.Channel);
+
+                Debug.WriteLine(msg, "Action");
+                irc.RfcPart(e.Data.Channel, msg);
+                Notice(enroller, msg);
             }
             else
             {
-                irc.RfcPart(e.Data.Channel, string.Format("Channel couldn't be enrolled into ChanFix. ({0} wasn't op)", enroller));
-                Debug.WriteLine(string.Format("Can't enroll {0} ({1} wasn't op)", e.Data.Channel, enroller), "Action");
+                string msg = string.Format("Can't enroll {0} ({1} wasn't op)", e.Data.Channel, enroller);
+
+                Debug.WriteLine(msg, "Action");
+                irc.RfcPart(e.Data.Channel, msg);
+                Notice(enroller, msg);
             }
             tryToEnroll.Remove(e.Data.Channel);
         }
