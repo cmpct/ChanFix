@@ -36,6 +36,9 @@ namespace ChanFix
         public static void Main(string[] args)
         {
             // init app
+            if (!Directory.Exists(configDir))
+                Directory.CreateDirectory(configDir);
+
             if (File.Exists(mapFile))
                 operMap = JsonConvert.DeserializeObject<OperMap>
                     (File.ReadAllText(mapFile));
@@ -63,6 +66,7 @@ namespace ChanFix
 
         private static void ProcessExit(object sender, EventArgs e)
         {
+            irc.RfcQuit("Server is exiting.");
             SerializeMap();
         }
 
