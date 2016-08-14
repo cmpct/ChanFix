@@ -32,9 +32,13 @@ namespace ChanFix
         public int Port { get; set; } = 6667;
 
         public string Nick { get; set; } = "ChanFix";
+        public string Login { get; set; } = "ChanFix";
 
         public string OperName { get; set; }
         public string OperPass { get; set; }
+
+        // +B marks a bot, it's supported on both insp and unreal
+        public string InitialModes { get; set; } = "+B";
     }
 
     class Program
@@ -66,6 +70,7 @@ namespace ChanFix
             {
                 Console.WriteLine("The config file didn't exist, created a template.");
                 Console.WriteLine("Configure this file and restart the server.");
+                Console.WriteLine("Look for it at: {0}", configFile);
                 File.WriteAllText(configFile, JsonConvert.SerializeObject(new Config()));
                 return 1;
             }
@@ -86,9 +91,9 @@ namespace ChanFix
             irc.ActiveChannelSyncing = true;
             irc.SupportNonRfc = true;
             irc.Connect(config.Server, 6667);
-            irc.Login(config.Nick, "Channel op repair services", 4, config.Nick);
+            irc.Login(config.Nick, "Channel op repair services", 4, config.Login);
             irc.RfcOper(config.OperName, config.OperPass);
-            irc.RfcMode(irc.Nickname, "+B");
+            irc.RfcMode(irc.Nickname, config.InitialModes);
 
             irc.Listen();
 
