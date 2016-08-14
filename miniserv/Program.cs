@@ -18,6 +18,12 @@ namespace ChanFix
         public string Nick { get; set; }
         public string Ident { get; set; }
         public string Host { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("{0}!{1}@{2}",
+                Nick, Ident, Host);
+        }
     }
 
     public class Config
@@ -139,8 +145,7 @@ namespace ChanFix
                         if (operMap.ContainsKey(param))
                             if (operMap[param].Count > 0)
                                 foreach (var u in operMap[param])
-                                    Notice(e.Data.Nick, string.Format("{0} op: {1}!{2}@{3}",
-                                        param, u.Nick, u.Ident, u.Host));
+                                    Notice(e.Data.Nick, string.Format("{0} op: {1}", param, u));
                             else
                                 Notice(e.Data.Nick, "No ops were enrolled for this channel.");
                         else
