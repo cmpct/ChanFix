@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 // this is a long one, so alias it
-using OperMap = System.Collections.Generic.Dictionary<string,System.Collections.Generic.List<ChanFix.User>>;
+using OperMap = System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<ChanFix.User>>;
 
 namespace ChanFix
 {
@@ -40,11 +40,12 @@ namespace ChanFix
                 operMap = JsonConvert.DeserializeObject<OperMap>
                     (File.ReadAllText(mapFile));
 
+            AppDomain.CurrentDomain.ProcessExit += ProcessExit;
+
             // init irc
             irc.OnRawMessage += OnRawMessage;
             irc.OnQueryMessage += OnQueryMessage;
             irc.OnChannelActiveSynced += OnChannelSync;
-            irc.OnQuit += OnQuit;
 
             irc.ActiveChannelSyncing = true;
             irc.SupportNonRfc = true;
@@ -55,9 +56,14 @@ namespace ChanFix
             irc.Listen();
         }
 
-        private static void OnQuit(object sender, QuitEventArgs e)
+        public static void SerializeMap()
         {
             File.WriteAllText(mapFile, JsonConvert.SerializeObject(operMap));
+        }
+
+        private static void ProcessExit(object sender, EventArgs e)
+        {
+            SerializeMap();
         }
 
         public static void ServiceOp(string channel, string user)
