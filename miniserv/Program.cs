@@ -1,10 +1,15 @@
 ﻿using Meebey.SmartIrc4net;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+// this is a long one, so alias it
+using OperMap = System.Collections.Generic.Dictionary<string,System.Collections.Generic.List<ChanFix.User>>;
 
 namespace ChanFix
 {
@@ -17,19 +22,29 @@ namespace ChanFix
 
     class Program
     {
+        public static string configDir = Path.Combine(Environment.GetFolderPath
+            (Environment.SpecialFolder.ApplicationData), "ChanFix");
+        public static string mapFile = Path.Combine(configDir, "OperatorMapping.json");
+
         public static IrcClient irc = new IrcClient();
         // Key: Channel, Values: List of channel ops
-        public static Dictionary<string, List<User>> operMap =
-                  new Dictionary<string, List<User>>();
+        public static OperMap operMap = new OperMap();
         // Key: Channel, Value: User trying to enroll
         public static Dictionary<string, string> tryToEnroll =
                   new Dictionary<string, string>();
 
         public static void Main(string[] args)
         {
+            // init app
+            if (File.Exists(mapFile))
+                operMap = JsonConvert.DeserializeObject<OperMap>
+                    (File.ReadAllText(mapFile));
+
+            // init irc
             irc.OnRawMessage += OnRawMessage;
             irc.OnQueryMessage += OnQueryMessage;
             irc.OnChannelActiveSynced += OnChannelSync;
+            irc.OnQuit += OnQuit;
 
             irc.ActiveChannelSyncing = true;
             irc.SupportNonRfc = true;
@@ -38,6 +53,11 @@ namespace ChanFix
             irc.RfcOper("calvin", "hacktheplanet");
 
             irc.Listen();
+        }
+
+        private static void OnQuit(object sender, QuitEventArgs e)
+        {
+            File.WriteAllText(mapFile, JsonConvert.SerializeObject(operMap));
         }
 
         public static void ServiceOp(string channel, string user)
