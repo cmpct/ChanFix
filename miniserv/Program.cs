@@ -119,8 +119,9 @@ namespace ChanFix
             var c = irc.GetChannel(e.Data.Channel);
 
             string enroller = tryToEnroll[e.Data.Channel];
+            ChannelUser enrollerAsUser = ((ChannelUser)c.Users[enroller]);
 
-            if (((ChannelUser)c.Users[enroller]).IsOp)
+            if (enrollerAsUser.IsOp || enrollerAsUser.IsIrcOp)
             {
                 // wipe/init the channel enrollment
                 operMap[e.Data.Channel] = new List<User>();
